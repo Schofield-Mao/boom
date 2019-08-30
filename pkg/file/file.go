@@ -32,7 +32,7 @@ func RemoveFile(filename string) error{
 	return os.Remove(filename)
 }
 
-func PartFile(tempfile string, numPart int64, mainfile string, handler func([]byte)([]byte,error)) ([]string,error){
+func SplitFile(tempfile string, numPart int64, mainfile string, handler func([]byte)([]byte,error)) ([]string,error){
 	f,err := os.OpenFile(mainfile, os.O_RDONLY, 0600)
 	defer f.Close()
 	if err != nil{

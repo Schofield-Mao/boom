@@ -39,7 +39,7 @@ func TestReadFile(t *testing.T){
 }
 
 func TestPartFile(t *testing.T){
-	_,err := PartFile(".temp", 10, "url",func(bs []byte)([]byte,error){
+	_,err := SplitFile(".temp", 10, "url",func(bs []byte)([]byte,error){
 		return bs,nil
 	})
 	if err != nil{
