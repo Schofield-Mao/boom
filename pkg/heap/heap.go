@@ -49,20 +49,7 @@ func remove(a *[]string, m map[string]int){
 	*a = append((*a)[0:len(*a)-1])
 }
 
-// func makeHeap(a []string,m map[string]int){
-// 	for i:=(len(a)-1)/2;i>=0;i--{
-// 		shiftDown(a,len(a)-1,i,m)
-// 	}
-// }
-
-// func heapSort(a []string,m map[string]int){
-// 	MakeHeap(a,m)
-// 	for size := len(a)-1;size>0;size--{
-// 		swap(a,0,size)
-// 		shiftDown(a,size-1,0,m)
-// 	} 
-// }
-
+//function:get the k highest value k in the map
 func GetTopK(m map[string]int, num_k int) []string{
   topK := make([]string,0)
   for k,v := range m{

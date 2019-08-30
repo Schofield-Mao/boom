@@ -1,3 +1,6 @@
+/*
+	This wrap some file operation of this project
+*/
 package file
 
 import (
@@ -32,7 +35,18 @@ func RemoveFile(filename string) error{
 	return os.Remove(filename)
 }
 
-func SplitFile(tempfile string, numPart int64, mainfile string, handler func([]byte)([]byte,error)) ([]string,error){
+/**
+ *function:split big file into small files, small filename and number of saml files can be specified
+ *parameters:
+ *@tempfile:the name of temporary files
+ *@numPart: the number of files
+ *@mainfile: the big file to be splited
+ *@mapper: a hook, do something on the byte of small file before writting
+ *returns:
+ *@[]string:the array of filenames
+ *@error:error
+ */
+func SplitFile(tempfile string, numPart int64, mainfile string, mapper func([]byte)[]byte) ([]string,error){
 	f,err := os.OpenFile(mainfile, os.O_RDONLY, 0600)
 	defer f.Close()
 	if err != nil{
@@ -52,7 +66,7 @@ func SplitFile(tempfile string, numPart int64, mainfile string, handler func([]b
 			return filenames,nil
 	  }
 		filenames[c] = tempfile+strconv.Itoa(c)
-		newBs,err := handler(bs[:n])
+		newBs := mapper(bs[:n])
 	  WriteFile(filenames[c], newBs)
 	  c++
 	}

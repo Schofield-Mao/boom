@@ -2,6 +2,47 @@
 --- 
 boom 是一个基于go语言实现的map-reduce框架。
 
+**如何使用**
+- 切割文件接口
+```
+/**
+ *function:split big file into small files, small filename and number of saml files can be specified
+ *parameters:
+ *@tempfile:the name of temporary files
+ *@numPart: the number of files
+ *@mainfile: the big file to be splited
+ *@mapper: a hook, do something on the byte of small file before writting
+ *returns:
+ *@[]string:the array of filenames
+ *@error:error
+ */
+func SplitFile(tempfile string, numPart int64, mainfile string, mapper func([]byte)[]byte) ([]string,error)
+```
+- map接口
+```
+  /**
+ *function:An interface to abstract mapping 
+ *parameters:
+ *@filenames:file list to map
+ *@mapper:custom map function 
+ *returns:
+ *@error:error
+ */
+func Mapper(filenames []string, mapper func([]byte)[]byte) error
+```
+
+- reduce 接口
+```
+/**
+ *function:An interface to reduce result, it reduce every 2 consective result 
+ *parameters:
+ *@filenames:file list to reduce
+ *@reducer:custom function to reduce to
+ *returns:
+ *@error:error
+ */
+ func Reducer(filenames []string, reducer func([]byte,[]byte)[]byte) error
+```
 
 **例子**
 
@@ -19,15 +60,7 @@ boom 是一个基于go语言实现的map-reduce框架。
 
 - reduce
     - 合并两个topK,组合出新的哈希表
-    - 再次计算topK
   
 
 **优化：分布式计算**
--map 
--reduce
-100GB分成100份，即每份1GB,每份选出局部topK,然后合并局部topK,得到全局topK
-
-**demo**
-X GO url, 分成X/maxM 堆，　存储为临时文件，并分别选出topK
-每相邻两个文件A,B　reduce 并写入Ｂ
-全部reduce
+100GB分成100份或者更多，即每份存在一个节点,每个节点统计并，选出局部topK,然后合并局部topK,得到全局topK

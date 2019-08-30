@@ -5,69 +5,31 @@ import (
   "strconv"
   "os"
   "math/rand"
-  "boom/pkg/file"
-  "boom/pkg/kernel"
   "strings"
+  "boom/pkg/file"
+  "boom/pkg/heap"
+  "boom/pkg/mapReduce"
 )
 
 func main() {
   //spilit file
-  fn,err := file.SplitFile(".temp-",10,"data",ByteHandler)
+  filenames,err := file.SplitFile(".temp-",10,"data",Raw2Map)
   if err != nil{
     fmt.Println(err)
   }
-
-  //map:countting&get local top K
-  for _,filename := range fn{
-    //get byte of {filename}
-    bs,err := file.ReadFile(filename)
-    if err != nil{
-      fmt.Println(err)
-    }
-    
-    //map
-    newBs := kernel.Map2TopK(bs,10)
-    
-    //write back
-    _,err = file.WriteFile(filename,newBs)
-    if err != nil{
-      fmt.Println(err)
-    }
+  //map
+  err = mapReduce.Mapper(filenames, Map2Top10)
+  if err != nil{
+    fmt.Println(err)
   }
-
-
-  //reduce:reduce into 1 file
-  for i,_ := range fn{
-    //reduce consective two file
-    if i == len(fn)-1{
-      break
-    }
-    //get byte of file a
-    a,err := file.ReadFile(fn[i])
-    if err != nil{
-      fmt.Println(err)
-    }
-    //get byte of file b
-    b,err := file.ReadFile(fn[i+1])
-    if err != nil{
-      fmt.Println(err)
-    }
-    //reduce
-    newBs := kernel.Reduce(a,b)
-    //map
-    newBs = kernel.Map2TopK(newBs,10)
-    //write back to b file
-    _,err = file.WriteFile(fn[i+1],newBs)
-    if err != nil{
-      fmt.Println(err)
-    }
-    //remove file a
-    err = file.RemoveFile(fn[i])
-    if err != nil{
-      fmt.Println(err)
-    }
+  //reduce
+  err = mapReduce.Reducer(filenames, Reduce)
+  if err != nil{
+    fmt.Println(err)
   }
 }
+
+//create data func
 func CreateDATA(N int){
   const filename = "data"
   f,err := os.Create(filename)
@@ -84,15 +46,62 @@ func CreateDATA(N int){
   fmt.Println("done")
 }
 
-func ByteHandler(bs []byte) ([]byte,error){
-	a := strings.Split(string(bs), " ")
+
+//concreate map func
+func Raw2Map(bs []byte) []byte{
+  a := strings.Split(string(bs), " ")
   m := make(map[string]int)
-	for _,k := range a{
-		m[k]+=1
-	}
+  for _,k := range a{
+	  		m[k]+=1
+  }
   bs,err := file.Map2Json(m)
   if err != nil{
-    return nil,err
+    fmt.Println(err)
   }
-	return bs,nil 
+  return bs
+}
+
+func Map2Top10(bs []byte) []byte{
+	m,err := file.Json2Map(bs)
+	if err != nil{
+		fmt.Println(err)
+	}
+	topK := heap.GetTopK(m,10)
+	
+	newM := make(map[string]int)
+	for _,k := range topK{
+		newM[k] = m[k]
+	}
+	newBs,err := file.Map2Json(newM)
+	if err != nil{
+		fmt.Println(err)
+	}
+	return newBs
+}
+
+//concreate reduce func
+func Reduce(a []byte, b []byte) []byte{
+	am,err := file.Json2Map(a)
+	if err != nil{
+		fmt.Println(err)
+	}
+	bm,err := file.Json2Map(b)
+	if err != nil{
+		fmt.Println(err)
+	}
+	cm := make(map[string]int)
+	for k,v := range am{
+		cm[k]+=v
+	}
+	for k,v := range bm{
+		cm[k]+=v
+	}
+	
+	c,err := file.Map2Json(cm)
+	c = Map2Top10(c)
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	return c
 }

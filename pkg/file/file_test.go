@@ -1,3 +1,7 @@
+/*
+	This test file can pass only with {data} file under this path
+	with fully tested, this file exists only for usage
+*/
 package file
 
 import (
@@ -5,6 +9,7 @@ import (
 	"encoding/json"
 	"strconv"
 )
+
 func TestWriteFile(t *testing.T){
 	testcases := []struct{
 		a string
@@ -38,9 +43,9 @@ func TestReadFile(t *testing.T){
 	}
 }
 
-func TestPartFile(t *testing.T){
-	_,err := SplitFile(".temp", 10, "url",func(bs []byte)([]byte,error){
-		return bs,nil
+func TestSplitFile(t *testing.T){
+	_,err := SplitFile(".temp", 10, "url",func(bs []byte)[]byte{
+		return bs
 	})
 	if err != nil{
 		t.Error(err)
