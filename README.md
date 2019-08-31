@@ -82,5 +82,4 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error
 
 ![phases description](/img/phases.png)
 
-**优化：分布式计算**
-100GB分成100份或者更多，即每份存在一个节点,每个节点统计并，选出局部topK,然后合并局部topK,得到全局topK
+**优化方法：分布式计算**
