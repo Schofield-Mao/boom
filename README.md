@@ -66,15 +66,7 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error
 
 - 基本思路
 
-把原文件拆成ｎ份(100GB/n<1GB),分别读入内存映射处理后，写入ｎ个临时文件。每两个临时文件做归约操作，再写入临时文件，直到只有最后一个临时文件，即最后的topK。
-
-- map
-    - 统计url出现个数
-    - 计算局部topK
-
-- reduce
-    - 合并两个topK,组合出新的哈希表
-  
+把原文件拆成ｎ份(100GB/n<1GB),分别读入内存映射处理后，写入ｎ个临时文件。通过哈希shuffle操作，把同类的url(暂时按前缀分类)放在一个文件。通过定义映射关系，找出每个分类的局部topK。通过定义归约函数，找出全局topK，输出到OUTPUT。
 
 
 ![flow char](/img/flow.jpg)
