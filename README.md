@@ -18,6 +18,20 @@ boom 是一个基于go语言实现的map-reduce框架。
  */
 func SplitFile(tempfile string, numPart int64, mainfile string, mapper func([]byte)[]byte) ([]string,error)
 ```
+
+- shuffle接口
+```
+  /**
+ *function:reorganize the files 
+ *parameters:
+ *@filenames:file list to shuffle
+ *returns:
+ *@filenames:file list after shuffle
+ *@error:error
+ */
+Shuffler([]string) ([]string,error)
+```
+
 - map接口
 ```
   /**
