@@ -62,5 +62,9 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error
     - 合并两个topK,组合出新的哈希表
   
 
+![flow char]("boom/img/flow.svg")
+
+
+
 **优化：分布式计算**
 100GB分成100份或者更多，即每份存在一个节点,每个节点统计并，选出局部topK,然后合并局部topK,得到全局topK
