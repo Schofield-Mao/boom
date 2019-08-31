@@ -1,6 +1,6 @@
 ### boom
 --- 
-boom 是一个基于go语言实现的map-reducef模仿框架。
+boom 是一个基于go语言实现的map-reduce模仿框架。
 
 **如何使用**
 - 切割文件接口
