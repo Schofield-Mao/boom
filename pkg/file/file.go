@@ -35,6 +35,10 @@ func RemoveFile(filename string) error{
 	return os.Remove(filename)
 }
 
+func RenameFile(oldFilename string, newFilename string) error{
+	return os.Rename(oldFilename, newFilename)
+}
+
 /**
  *function:split big file into small files, small filename and number of saml files can be specified
  *parameters:

@@ -9,28 +9,39 @@ import (
   "boom/pkg/file"
   "boom/pkg/heap"
   "boom/pkg/mapReduce"
+  "boom/pkg/shuffle"
 )
 
 func main() {
-  //spilit file
-  filenames,err := file.SplitFile(".temp-",10,"data",Raw2Map)
+  INTPUT := "data"
+  //spilit file & map
+  filenames,err := file.SplitFile(".temp-",10,INTPUT,Raw2Map)
   if err != nil{
     fmt.Println(err)
+    return
   }
 
-  shuffle(filenames)
+  //shuffle
+  filenames,err = shuffle.Shuffler(filenames)
+  if err != nil{
+    fmt.Println(err)
+    return
+  }
 
-  filenames = Reducer(filenames)
-  //map
-  err = mapReduce.Mapper(filenames, Map2Top10)
+  //map:top K
+  filenames,err = mapReduce.Mapper(filenames, Map2Top10)
   if err != nil{
     fmt.Println(err)
+    return
   }
-  // //reduce
-  err = mapReduce.Reducer(filenames, Reduce)
+
+  //reduce:output
+  output,err := mapReduce.Reducer(filenames, Reduce)
   if err != nil{
     fmt.Println(err)
+    return
   }
+  fmt.Println(output)
 }
 
 //create data func
@@ -110,105 +121,3 @@ func Reduce(a []byte, b []byte) []byte{
 	return c
 }
 
-//
-func shuffle(filenames []string){
-  for _,filename := range filenames{
-    shuffleHelper(filename)
-    file.RemoveFile(filename)
-  }
-}
-
-func shuffleHelper(filename string){
-  mList := make([]map[string]int,10)
-  
-  bs,err := file.ReadFile(filename)
-  if err != nil{
-    fmt.Println(err)
-  }
-  m,err :=  file.Json2Map(bs)
-  if err != nil{
-    fmt.Println(err)
-  }
-  for k,v := range m{
-    if mList[hash(k)] == nil{
-      mList[hash(k)] = make(map[string]int)
-    } 
-    mList[hash(k)][k] = v 
-  }
-  for i:=0;i<10;i++{
-    b,err := file.Map2Json(mList[i])
-    if err != nil{
-      fmt.Println(err)
-    }
-    file.WriteFile(filename+"-shuffle-"+strconv.Itoa(i),b)
-  }
-
-}
-
-func Reducer(filenames []string) []string{
-  rt := make([]string,10)
-  for i:=0;i<10;i++{
-    rt[i] = reduceHelper(i,filenames)
-  }
-  return rt
-}
-
-func reduceHelper(bucket int, filenames []string) string{
-  m := make(map[string]int)
-  for _,filename := range filenames{
-    fn := filename+"-shuffle-"+strconv.Itoa(bucket)
-    bs,err := file.ReadFile(fn)
-    defer file.RemoveFile(fn)
-    if err != nil{
-      fmt.Println(err)
-    }
-    temp,err := file.Json2Map(bs)
-    if err != nil{
-      fmt.Println(err)
-    }
-    for k,v := range temp{
-      m[k] += v
-    }
-  }
-  b,err := file.Map2Json(m)
-  if err != nil{
-    fmt.Println(err)
-  }
-  file.WriteFile(".REDUCE-"+strconv.Itoa(bucket),b)
-  return ".REDUCE-"+strconv.Itoa(bucket)
-}
-
-func hash(key string) int{
-  if strings.HasPrefix(key, "0"){
-    return 0;
-  }
-  if strings.HasPrefix(key, "1"){
-    return 1;
-  }
-  if strings.HasPrefix(key, "2"){
-    return 2;
-  }
-  if strings.HasPrefix(key, "3"){
-    return 3;
-  }
-  if strings.HasPrefix(key, "4"){
-    return 4;
-  }
-  if strings.HasPrefix(key, "5"){
-    return 5;
-  }
-  if strings.HasPrefix(key, "6"){
-    return 6;
-  }
-  if strings.HasPrefix(key, "7"){
-    return 7;
-  }
-  if strings.HasPrefix(key, "8"){
-    return 8;
-  }
-  if strings.HasPrefix(key, "9"){
-    return 9;
-  }
-  return 0
-}
-  

@@ -18,25 +18,29 @@ type MapReduce interface{
  *returns:
  *@error:error
  */
-func Mapper(filenames []string, mapper func([]byte)[]byte) error {
+func Mapper(filenames []string, mapper func([]byte)[]byte) ([]string, error) {
 	//map:countting&get local top K
-	for _,filename := range filenames{
+   mapperfiles := make([]string,10)
+   for i,filename := range filenames{
 	 //get byte of {filename}
 	 bs,err := file.ReadFile(filename)
 	 if err != nil{
-	   return err
+	   return nil,err
 	 }
 	 
 	 //map
 	 newBs := mapper(bs)
-	 
-	 //write back
-	 _,err = file.WriteFile(filename,newBs)
+    
+    //remove last phase files
+    file.RemoveFile(filename)
+    //write back
+    mapperfiles[i] = filename+"-mapper-"
+	 _,err = file.WriteFile(mapperfiles[i],newBs)
 	 if err != nil{
-		return err
-	}
+		return nil,err
+	 }
    }
-   return nil
+   return mapperfiles,nil
  }
  
  /**
@@ -47,7 +51,7 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error {
  *returns:
  *@error:error
  */
- func Reducer(filenames []string, reducer func([]byte,[]byte)[]byte) error{
+ func Reducer(filenames []string, reducer func([]byte,[]byte)[]byte) (string,error){
   //reduce:reduce into 1 file
   for i,_ := range filenames{
    //reduce consective two file
@@ -57,12 +61,12 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error {
    //get byte of file a
    a,err := file.ReadFile(filenames[i])
    if err != nil{
-	return err
+	return "",err
    }
    //get byte of file b
    b,err := file.ReadFile(filenames[i+1])
    if err != nil{
-	return err
+	return "",err
    }
    //reduce
    newBs := reducer(a,b)
@@ -71,13 +75,15 @@ func Mapper(filenames []string, mapper func([]byte)[]byte) error {
    //write back to b file
    _,err = file.WriteFile(filenames[i+1],newBs)
    if err != nil{
-	return err
+	return "",err
    }
    //remove file a
    err = file.RemoveFile(filenames[i])
    if err != nil{
-	return err
+	return "",err
    }
   }
-  return nil
+  newFilename := "output"
+  file.RenameFile(filenames[len(filenames)-1],newFilename)
+  return newFilename,nil
  }
